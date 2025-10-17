@@ -1,0 +1,61 @@
+OpenMP
+sudo apt update
+sudo apt install gcc libomp-dev -y
+nano sum.c
+
+#include <stdio.h>
+#include <omp.h>
+
+int main() {
+    int n = 1000000;
+    long long sum = 0;
+
+    #pragma omp parallel for reduction(+:sum)
+    for (int i = 1; i <= n; i++) {
+        sum += i;
+    }
+
+    printf("Sum = %lld\n", sum);
+    return 0;
+}
+
+gcc -fopenmp -O2 sum.c -o sum.out
+export OMP_NUM_THREADS=4
+./sum.out
+
+MPI
+sudo apt update
+sudo apt install -y mpich python3 python3-pip
+pip install mpi4py
+
+
+
+sudo apt update
+sudo apt install -y mpich python3 python3-pip
+sudo apt install python3-mpi4py 
+
+
+nano factorial_mpi.py
+
+from mpi4py import MPI
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+size = comm.Get_size()
+if rank == 0:
+    n = int(input("Enter n: "))
+else:
+    n = None
+# Broadcast n to all processes
+n = comm.bcast(n, root=0)
+# Each process computes partial product
+fact = 1
+for i in range(rank + 1, n + 1, size):
+    fact *= i
+# Combine all partial results
+total = comm.reduce(fact, op=MPI.PROD, root=0)
+if rank == 0:
+    print(f"Factorial({n}) = {total}")
+
+mpirun -np 4 python3 factorial_mpi.py
+
+
